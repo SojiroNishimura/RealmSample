@@ -45,6 +45,10 @@ public class MainActivity extends AppCompatActivity {
 
         RealmConfiguration realmConfig = new RealmConfiguration.Builder(this).build();
         Realm.setDefaultConfiguration(realmConfig);
+
+        if (!hasPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE)) {
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, 0);
+        }
     }
 
     @Override
@@ -88,6 +92,20 @@ public class MainActivity extends AppCompatActivity {
         r.commitTransaction();
         // トランザクション終了
 
+        String fileName = "realm_copy.realm";
+        File dir = Environment.getExternalStorageDirectory();
+
+        File f = new File(Environment.getExternalStorageDirectory() + "/" + fileName);
+        if (f.exists()) {
+            f.delete();
+        }
+
+        try {
+            r.writeCopyTo(f);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
         r.close();
     }
 
@@ -101,4 +119,9 @@ public class MainActivity extends AppCompatActivity {
         });
         r.close();
     }
+
+    private boolean hasPermission(String permissionName) {
+        return (ContextCompat.checkSelfPermission(this, permissionName) == PackageManager.PERMISSION_GRANTED);
+    }
+
 }
